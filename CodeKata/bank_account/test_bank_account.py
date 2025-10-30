@@ -65,3 +65,13 @@ def test_empty_account_statement(capsys):
     account.printStatement()
     out = capsys.readouterr().out.strip()
     assert out == "Date       || Amount || Balance"
+
+
+def test_running_balance_calculation(capsys):
+    account = BankAccount()
+    account.deposit(1000)
+    account.withdraw(400)
+    account.deposit(200)
+
+    assert account.balance == 800  # 1000 - 400 + 200
+
