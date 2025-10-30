@@ -75,3 +75,57 @@ def test_running_balance_calculation(capsys):
 
     assert account.balance == 800  # 1000 - 400 + 200
 
+def test_negative_withdraw():
+    account = BankAccount()
+    account.deposit(100)
+    try:
+        account.withdraw(-50)
+    except ValueError as e:
+        assert str(e) == "Withdraw amount must be positive."
+
+def test_statement_order_is_latest_first(capsys):
+    account = BankAccount()
+    account.deposit(100)
+    account.withdraw(50)
+    account.deposit(25)
+    account.printStatement()
+
+    captured = capsys.readouterr().out.strip().split("\n")[1:]  # Skip header
+    first_line = captured[0]
+    last_line = captured[-1]
+
+    # Latest should be last deposit (+25)
+    assert "+25" in first_line
+    # Oldest should be first deposit (+100)
+    assert "+100" in last_line
+
+def test_balance_never_negative():
+    account = BankAccount()
+    account.deposit(100)
+    try:
+        account.withdraw(200)
+    except ValueError:
+        pass
+    assert account.balance == 100  # Still the same, withdrawal didn’t happen
+
+
+def test_initial_state():
+    account = BankAccount()
+    assert account.balance == 0
+    assert account.transactions == []
+
+
+def test_transaction_record_details():
+    account = BankAccount()
+    account.deposit(500)
+    account.withdraw(100)
+
+    transactions = account.transactions
+    assert len(transactions) == 2
+
+    # Check tuple structure: (date, amount, balance)
+    for t in transactions:
+        assert len(t) == 3
+        assert isinstance(t[0], str)  # date
+        assert isinstance(t[1], int)
+        assert isinstance(t[2], int)
